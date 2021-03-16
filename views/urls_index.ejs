@@ -16,6 +16,7 @@
           <th scope="col">Short URL</th>
           <th scope="col">Long URL</th>
           <th scope="col">Delete</th>
+          <th scope="col">Update</th>
         </tr>
       </thead>
       <tbody>
@@ -23,8 +24,15 @@
           <tr>
             <td><%= url %></td>
             <td><%= urls[url] %></td>
-            <td><form type="submit" method="POST" action="/urls/<%= url %>/delete"><button
-              class="btn btn-outline-danger">Delete</button></form></td>
+            <td>
+              <form type="submit" method="POST" action="/urls/<%= url %>/delete">
+                <button class="btn btn-outline-danger">Delete</button>
+              </form>
+            </td>
+            <td>
+                <button class="btn btn-outline-primary"> <a href="/urls/<%= url %>">update</a></button>
+              </form>
+            </td>
           </tr>
         <% } %>
       </tbody>
