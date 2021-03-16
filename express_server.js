@@ -2,9 +2,11 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const randomstring = require("randomstring");
+const morgan = require('morgan')
 app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
+morgan('http://localhost:8080')
 
 
 app.get("/urls", (req, res) => {
@@ -12,13 +14,24 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
+app.get("/u/:shortURL", (req, res) => {
+  console.log(urlDatabase)
+  console.log(req.params.shortURL)
+  const longURL = urlDatabase[req.params.shortURL]
+  res.redirect(longURL);
+});
+
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  let short = generateRandomString();
+  urlDatabase[short] = req.body.longURL
+  console.log(urlDatabase)
+  
+  const templateVars = { shortURL: short, longURL: req.body.longURL };
+  res.render("urls_show", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
