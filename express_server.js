@@ -23,6 +23,11 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+app.post("/urls/:shortURL/delete", (req, res) => {
+  delete urlDatabase[req.params.shortURL]
+  res.redirect("/urls")
+})
+
 app.post("/urls", (req, res) => {
   let short = generateRandomString();
   urlDatabase[short] = req.body.longURL
