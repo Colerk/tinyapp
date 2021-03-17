@@ -11,26 +11,68 @@ let cookieParser = require('cookie-parser')
 app.use(cookieParser())
 
 
+const users = { 
+  "userRandomID": {
+    id: "userRandomID", 
+    email: "user@example.com", 
+    password: "purple-monkey-dinosaur"
+  },
+ "user2RandomID": {
+    id: "user2RandomID", 
+    email: "user2@example.com", 
+    password: "dishwasher-funk"
+  }
+}
+
+
+const urlDatabase = {
+  "b2xVn2": "http://www.lighthouselabs.ca",
+  "9sm5xK": "http://www.google.com"
+};
+
+const exists = function(obj, val1, val2) {
+  for (let key in obj) {
+    if (obj[key][val1] === val2) {
+      throw new Error('400: That email already exists');
+    }
+  }
+}
+
 app.get("/register", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    user: users,
+    cookies: req.cookies
   };
   res.render("urls_register", templateVars);
 });
 
+app.post("/register", (req, res) => {
+  if (req.body.email === '' || req.body.password === '') {
+    throw new Error('400: You cannot enter an empty value');
+  }
+  console.log('users', users)
+  exists(users, 'email', req.body.email);
+  const id = generateRandomString(6);
+  users[id] = { id: id, email: req.body.email, password: req.body.password}
+  res.cookie('user_id', users[id].id)
+  const templateVars = { cookies: req.cookies };
+  res.redirect("/urls");
+})
+
 app.get("/urls", (req, res) => {
-  const templateVars = { username: req.cookies["username"], urls: urlDatabase };
+  const templateVars = { user: users, urls: urlDatabase, cookies: req.cookies };
   res.render("urls_index", templateVars);
 });
 
 app.post("/login", (req, res) => {
-  res.cookie('username', req.body.username)
+  // res.cookie('username', req.body.username)
   res.redirect('/urls');
 });
 
 app.post("/logout", (req, res) => {
-  console.log(req.cookies["username"])
-  res.clearCookie("username")
+  console.log(req.cookies.user_id)
+  console.log('users', users)
+  res.clearCookie("user_id")
   res.redirect('/urls');
 });
 
@@ -43,7 +85,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    user: users,
   };
   res.render("urls_new", templateVars);
 });
@@ -62,19 +104,15 @@ app.post("/urls/:shortURL", (req, res) => {
 app.post("/urls", (req, res) => {
   let short = generateRandomString();
   urlDatabase[short] = req.body.longURL
-  const templateVars = { shortURL: short, longURL: req.body.longURL };
+  const templateVars = { shortURL: short, longURL: req.body.longURL, cookies: req.cookies, user: users };
   res.render("urls_show", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { username: req.cookies["username"], shortURL: req.params.shortURL, longURL: req.params.longURL };
+  const templateVars = { user: users, shortURL: req.params.shortURL, longURL: req.params.longURL, cookies: req.cookies };
   res.render("urls_show", templateVars);
 });
 
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
