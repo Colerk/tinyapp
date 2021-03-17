@@ -33,7 +33,7 @@ const urlDatabase = {
 const exists = function(obj, val1, val2) {
   for (let key in obj) {
     if (obj[key][val1] === val2) {
-      throw new Error('400: That email already exists');
+      return true;
     }
   }
 }
@@ -48,13 +48,14 @@ app.get("/register", (req, res) => {
 
 app.post("/register", (req, res) => {
   if (req.body.email === '' || req.body.password === '') {
-    throw new Error('400: You cannot enter an empty value');
+    res.status(400).send('You cannot enter an empty value');
   }
-  console.log('users', users)
-  exists(users, 'email', req.body.email);
+  if (exists(users, 'email', req.body.email)) {
+    res.status(400).send('You cannot enter an empty value');
+  };
   const id = generateRandomString(6);
   users[id] = { id: id, email: req.body.email, password: req.body.password}
-  res.cookie('user_id', users[id].id)
+  res.cookie('user_id', users[id].email)
   const templateVars = { cookies: req.cookies };
   res.redirect("/urls");
 })
@@ -65,8 +66,25 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  // res.cookie('username', req.body.username)
-  res.redirect('/urls');
+  if (exists(users, 'email', req.body.email) && !exists(users, 'password', req.body.password)) {
+    res.status(403).send('Incorrect Password')
+  }
+  if (!exists(users, 'email', req.body.email)) {
+    res.status(403).send('No email found')
+  }
+  if (exists(users, 'email', req.body.email) && exists(users, 'password', req.body.password)) {
+    res.cookie('user_id', req.body.email)
+    const templateVars = { cookies: req.cookies, user: users, urls: urlDatabase }
+    console.log('the login was successful')
+    res.redirect('/urls')
+  } else {
+    res.redirect('/login');
+  }
+});
+
+app.get("/login", (req, res) => {
+  const templateVars = { user: users, urls: urlDatabase, cookies: req.cookies };
+  res.render("urls_login", templateVars);
 });
 
 app.post("/logout", (req, res) => {
@@ -86,6 +104,7 @@ app.get("/u/:shortURL", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const templateVars = {
     user: users,
+    cookies: req.cookies,
   };
   res.render("urls_new", templateVars);
 });
