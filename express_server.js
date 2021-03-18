@@ -24,12 +24,10 @@ const users = {
   }
 }
 
-
 const urlDatabase = {
-  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+  b6UTxQ: { longURL: "https://www.tsn.ca", user_id: "user@example.com" },
+  i3BoGr: { longURL: "https://www.google.ca", user_id: "user2@example.com" }
 };
-
 
 
 //
@@ -72,7 +70,6 @@ app.post("/login", (req, res) => {
   if (exists(users, 'email', req.body.email) && exists(users, 'password', req.body.password)) {
     res.cookie('user_id', req.body.email)
     const templateVars = { cookies: req.cookies, user: users, urls: urlDatabase }
-    // console.log('the login was successful')
     res.redirect('/urls')
   } else {
     res.redirect('/login');
@@ -95,11 +92,6 @@ app.post("/logout", (req, res) => {
 
 
 
-app.get("/urls", (req, res) => {
-  const templateVars = { user: users, urls: urlDatabase, cookies: req.cookies };
-  res.render("urls_index", templateVars);
-});
-
 //
 // LINK REDIRECT
 //
@@ -113,6 +105,12 @@ app.get("/u/:shortURL", (req, res) => {
 //
 // CRUD
 //
+
+app.get("/urls", (req, res) => {
+  const templateVars = { user: users, urls: urlDatabase, cookies: req.cookies };
+  res.render("urls_index", templateVars);
+});
+
 
 app.post("/urls", (req, res) => {
   if (req.cookies.user_id) {
@@ -142,9 +140,10 @@ app.post("/urls/:shortURL", (req, res) => {
 
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  // console.log(urlDatabase[req.params.shortURL])
+  if (req.cookies.user_id === urlDatabase[req.params.shortURL].user_id) {
   delete urlDatabase[req.params.shortURL]
   res.redirect("/urls")
+  }
 })
 
 
