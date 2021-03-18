@@ -9,6 +9,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(morgan('dev'));
 let cookieParser = require('cookie-parser')
 app.use(cookieParser())
+const bcrypt = require('bcrypt');
 
 
 const users = { 
@@ -50,9 +51,12 @@ app.post("/register", (req, res) => {
     res.status(400).send('You cannot enter an empty value');
   };
   const id = generateRandomString(6);
-  users[id] = { id: id, email: req.body.email, password: req.body.password}
+  const password = req.body.password;
+  const hashedPassword = bcrypt.hashSync(password, 10)
+  users[id] = { id: id, email: req.body.email, password: hashedPassword}
   res.cookie('user_id', users[id].email)
-  const templateVars = { cookies: req.cookies };
+  console.log(users)
+  // const templateVars = { cookies: req.cookies };
   res.redirect("/urls");
 })
 
@@ -61,13 +65,19 @@ app.post("/register", (req, res) => {
 //
 
 app.post("/login", (req, res) => {
-  if (exists(users, 'email', req.body.email) && !exists(users, 'password', req.body.password)) {
+  console.log('users', users)
+
+  if (exists(users, 'email', req.body.email) && !bcrypt.compareSync(req.body.password, exists(users, 'email', req.body.email).password)) {
     res.status(403).send('Incorrect Password')
   }
   if (!exists(users, 'email', req.body.email)) {
     res.status(403).send('No email found')
   }
-  if (exists(users, 'email', req.body.email) && exists(users, 'password', req.body.password)) {
+  console.log('exists', exists(users, 'email', req.body.email))
+  console.log('req.body.pwrod', req.body.password)
+  console.log('exists pword', exists(users, 'password', req.body.password))
+
+  if (exists(users, 'email', req.body.email) && bcrypt.compareSync(req.body.password, exists(users, 'email', req.body.email).password)) {
     res.cookie('user_id', req.body.email)
     const templateVars = { cookies: req.cookies, user: users, urls: urlDatabase }
     res.redirect('/urls')
@@ -169,10 +179,12 @@ function generateRandomString() {
 const exists = function(obj, val1, val2) {
   for (let key in obj) {
     if (obj[key][val1] === val2) {
-      return true;
+      console.log(obj[key][val1])
+      return obj[key];
     }
   }
 }
+
 
 // app.get("/", (req, res) => {
 //   res.send("Hello!");
