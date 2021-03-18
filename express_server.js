@@ -1,6 +1,6 @@
 const express = require("express");
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080;
 const { generateRandomString, exists } = require("./helpers");
 const morgan = require('morgan')
 app.set("view engine", "ejs");
@@ -58,8 +58,6 @@ app.post("/register", (req, res) => {
   const hashedPassword = bcrypt.hashSync(password, 10)
   users[id] = { id: id, email: req.body.email, password: hashedPassword}
   req.session.user_id = users[id].email;
-  console.log(users)
-  // const templateVars = { cookies: req.cookies };
   res.redirect("/urls");
 })
 
@@ -68,22 +66,17 @@ app.post("/register", (req, res) => {
 //
 
 app.post("/login", (req, res) => {
-  console.log('users', users)
 
-  if (exists(users, 'email', req.body.email) && !bcrypt.compareSync(req.body.password, exists(users, 'email', req.body.email).password)) {
+  if (exists(users, 'email', req.body.email) && !bcrypt.compareSync(req.body.password, 
+    exists(users, 'email', req.body.email).password)) {
     res.status(403).send('Incorrect Password')
   }
   if (!exists(users, 'email', req.body.email)) {
     res.status(403).send('No email found')
   }
-  console.log('exists', exists(users, 'email', req.body.email))
-  console.log('req.body.pwrod', req.body.password)
-  console.log('exists pword', exists(users, 'password', req.body.password))
-
-  if (exists(users, 'email', req.body.email) && bcrypt.compareSync(req.body.password, exists(users, 'email', req.body.email).password)) {
+  if (exists(users, 'email', req.body.email) && bcrypt.compareSync(req.body.password, 
+    exists(users, 'email', req.body.email).password)) {
     req.session.user_id = req.body.email;
-
-    const templateVars = { cookies: req.session, user: users, urls: urlDatabase }
     res.redirect('/urls')
   } else {
     res.redirect('/login');
@@ -128,7 +121,12 @@ app.post("/urls", (req, res) => {
   if (req.session.user_id) {
   let short = generateRandomString();
   urlDatabase[short] = { longURL: req.body.longURL, user_id: req.session.user_id }
-  const templateVars = { shortURL: short, longURL: req.body.longURL, cookies: req.session, user: users };
+  const templateVars = { 
+    shortURL: short, 
+    longURL: req.body.longURL, 
+    cookies: req.session, 
+    user: users 
+  };
   res.render("urls_show", templateVars);
   } else {
     res.redirect('/login')
@@ -138,7 +136,11 @@ app.post("/urls", (req, res) => {
 // Read
 
 app.get("/urls", (req, res) => {
-  const templateVars = { user: users, urls: urlDatabase, cookies: req.session };
+  const templateVars = { 
+    user: users, 
+    urls: urlDatabase, 
+    cookies: req.session 
+  };
   res.render("urls_index", templateVars);
 });
 
@@ -152,7 +154,12 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { user: users, shortURL: req.params.shortURL, longURL: req.params.longURL, cookies: req.session };
+  const templateVars = { 
+    user: users, 
+    shortURL: req.params.shortURL, 
+    longURL: req.params.longURL, 
+    cookies: req.session 
+  };
   res.render("urls_show", templateVars);
 });
 
@@ -173,8 +180,6 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 })
 
 
-
-
 //
 // Other
 //
@@ -187,17 +192,3 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-
-
-
-// app.get("/", (req, res) => {
-//   res.send("Hello!");
-// });
-
-// app.get("/urls.json", (req, res) => {
-//   res.json(urlDatabase);
-// });
-
-// app.get("/hello", (req, res) => {
-//   res.send("<html><body>Hello <b>World</b></body></html>\n");
-// });
