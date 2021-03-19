@@ -154,6 +154,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
+  if (req.session.user_id === urlDatabase[req.params.shortURL].user_id) {
   const templateVars = {
     user: users,
     shortURL: req.params.shortURL,
@@ -161,6 +162,9 @@ app.get("/urls/:shortURL", (req, res) => {
     cookies: req.session
   };
   res.render("urls_show", templateVars);
+} else {
+  res.redirect('/login');
+}
 });
 
 // Update
