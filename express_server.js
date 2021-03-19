@@ -33,7 +33,6 @@ const urlDatabase = {
   i3BoGr: { longURL: "https://www.google.ca", user_id: "user2@example.com" }
 };
 
-
 //
 // REGISTER
 //
@@ -112,7 +111,6 @@ app.get("/u/:shortURL", (req, res) => {
 //
 // CRUD
 //
-
 
 
 // Create
